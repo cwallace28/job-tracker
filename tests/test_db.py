@@ -43,23 +43,32 @@ def count_companies(conn, name):
     return count
 
 
+def create_companies(*names):
+    """Act as the caller: connect, create each company, commit, and close."""
+    conn = db.connect()
+    cursor = conn.cursor()
+    ids = [db.get_or_create_company(cursor, name) for name in names]
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return ids
+
+
 def test_get_or_create_company_creates_missing_company(test_conn):
-    company_id = db.get_or_create_company("Test Company")
+    (company_id,) = create_companies("Test Company")
 
     assert isinstance(company_id, int)
     assert count_companies(test_conn, "Test Company") == 1
 
 
 def test_get_or_create_company_twice_returns_same_id(test_conn):
-    first_id = db.get_or_create_company("Test Company")
-    second_id = db.get_or_create_company("Test Company")
+    first_id, second_id = create_companies("Test Company", "Test Company")
 
     assert first_id == second_id
     assert count_companies(test_conn, "Test Company") == 1
 
 
 def test_get_or_create_company_distinct_names_get_distinct_ids(test_conn):
-    first_id = db.get_or_create_company("Company A")
-    second_id = db.get_or_create_company("Company B")
+    first_id, second_id = create_companies("Company A", "Company B")
 
     assert first_id != second_id

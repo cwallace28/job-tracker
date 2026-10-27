@@ -27,10 +27,9 @@ def connect():
     )
 
 # retrieves the company ID from the database (if it exists)
-# creates a new company in the database if it doesn't exist
-def get_or_create_company(company_name):
-    conn = connect()
-    cursor = conn.cursor()
+# creates a new company in the database if it doesn't
+# the caller owns the connection, so it is responsible for committing
+def get_or_create_company(cursor, company_name):
     cursor.execute("SELECT id FROM companies WHERE name = %s", (company_name,))
     result = cursor.fetchone()
     if result:
@@ -41,7 +40,4 @@ def get_or_create_company(company_name):
         # creates the new company in the database, since it doesnt exist yet
         cursor.execute("INSERT INTO companies (name) VALUES (%s)", (company_name,))
         company_id = cursor.lastrowid
-    conn.commit()
-    cursor.close()
-    conn.close()
     return company_id
