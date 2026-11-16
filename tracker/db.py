@@ -41,3 +41,25 @@ def get_or_create_company(cursor, company_name):
         cursor.execute("INSERT INTO companies (name) VALUES (%s)", (company_name,))
         company_id = cursor.lastrowid
     return company_id
+
+# adds application to the database (if it doesn't already exist)
+# the caller owns the connection, so it is responsible for committing
+def add_application(cursor, company_name, title, source, applied_on, job_url=None, follow_up_on=None):
+    company_id = get_or_create_company(cursor, company_name)
+    cursor.execute(
+        "SELECT id FROM applications WHERE company_id = %s AND title = %s AND source = %s AND applied_on = %s",
+        (company_id, title, source, applied_on)
+    )
+
+    result = cursor.fetchone()
+    if result:
+        return cast(tuple, result)[0]
+    
+    cursor.execute(
+        "INSERT INTO applications (company_id, title, source, applied_on, job_url, follow_up_on) VALUES (%s, %s, %s, %s, %s, %s)",
+        (company_id, title, source, applied_on, job_url, follow_up_on)
+    )
+    
+    application_id = cursor.lastrowid
+    return application_id
+
