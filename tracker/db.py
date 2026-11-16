@@ -1,7 +1,7 @@
 import os
 from typing import cast
 import mysql.connector
-from dotenv import find_dotenv, load_dotenv
+from dotenv import load_dotenv
 
 
 load_dotenv()
@@ -54,12 +54,17 @@ def add_application(cursor, company_name, title, source, applied_on, job_url=Non
     result = cursor.fetchone()
     if result:
         return cast(tuple, result)[0]
-    
+
     cursor.execute(
         "INSERT INTO applications (company_id, title, source, applied_on, job_url, follow_up_on) VALUES (%s, %s, %s, %s, %s, %s)",
         (company_id, title, source, applied_on, job_url, follow_up_on)
     )
     
     application_id = cursor.lastrowid
-    return application_id
 
+    # record the initial status so status_history is a complete timeline
+    cursor.execute(
+        "INSERT INTO status_history (application_id, status, changed_at, note) VALUES (%s, 'applied', %s, %s)",
+        (application_id, applied_on, "Application submitted")
+    )
+    return application_id

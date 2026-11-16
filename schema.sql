@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS applications (
     applied_on DATE NOT NULL,
     current_status ENUM('applied', 'screen', 'interview', 'offer', 'accepted', 'rejected', 'withdrawn') DEFAULT 'applied' NOT NULL,
     follow_up_on DATE,
+    UNIQUE KEY uq_application (company_id, title, source, applied_on),
     INDEX idx_current_status (current_status),
     INDEX idx_follow_up_on (follow_up_on)
 );

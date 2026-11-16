@@ -28,6 +28,12 @@ def test_database():
     cursor = conn.cursor()
     cursor.execute(f"CREATE DATABASE IF NOT EXISTS {TEST_DB_NAME}")
     cursor.execute(f"USE {TEST_DB_NAME}")
+    # drop tables so schema changes (e.g. new constraints) always take effect
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+    cursor.execute("SHOW TABLES")
+    for (table,) in cursor.fetchall():
+        cursor.execute(f"DROP TABLE {table}")
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
     statements = [s.strip() for s in SCHEMA_PATH.read_text().split(";") if s.strip()]
     for statement in statements:
         cursor.execute(statement)
